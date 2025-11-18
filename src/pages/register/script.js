@@ -3,7 +3,7 @@ import './style.css'
 document.querySelector('#app').innerHTML = `
   <div class="register-container">
     <div class="image-placeholder">
-      <img src=https://i.pinimg.com/474x/6b/01/38/6b013853077a4f3ad7e374810c49531b.jpg />
+      <img src="/public/image/register.jpg" alt="Register Illustration" />
     </div>
 
 
@@ -22,7 +22,7 @@ document.querySelector('#app').innerHTML = `
           </label>
         </div>
 
-        <button type="submit" class="btn-login">Login</button>
+        <button type="submit" class="btn-login">Register</button>
       </form>
     </div>
   </div>

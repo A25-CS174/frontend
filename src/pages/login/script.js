@@ -3,7 +3,7 @@ import './style.css';
 document.querySelector('#app').innerHTML = `
   <div class="login-container">
     <div class="image-placeholder">
-      <img src="https://i.pinimg.com/474x/6b/01/38/6b013853077a4f3ad7e374810c49531b.jpg" alt="Login Illustration" />
+      <img src="../../public/image/homepage-hero.png" alt="Login Illustration" />
     </div>
 
     <div class="form-section">
