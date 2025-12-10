@@ -1,35 +1,30 @@
-import { progressAPI, modulesAPI } from "../../api/api.js";
+import { progressAPI } from "../../api/api.js";
 
 export default class ProgressPage {
   constructor() {
     this.title = "Progres Belajar";
   }
 
-  async render() {
+  // UBAH NAMA METHOD: dari render() menjadi getHtml() agar dibaca Router
+  async getHtml() {
     return `
     <!-- Container Halaman -->
-    <div class="min-h-screen bg-gray-50 font-sans text-slate-700 pt-16">
+    <div class="min-h-screen bg-gray-50 font-sans text-slate-700">
       
-      <!-- SIDEBAR (Fixed Left) -->
-      <!-- Menggunakan class 'fixed' agar menempel di kiri layar -->
+      <!-- SIDEBAR -->
       <aside class="fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 hidden md:flex flex-col z-20 overflow-y-auto">
           <div class="py-4">
             <nav class="space-y-1">
-                <!-- Link 1: Progres Belajar (AKTIF) -->
-                <a href="/#/dashboard" class="bg-gray-100 text-slate-900 font-bold group flex items-center px-6 py-4 text-sm transition-all relative">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-slate-900"></div>
-                    <i class="fa-solid fa-chart-pie mr-4 text-lg w-5 text-center"></i>
-                    Progres Belajar
                 </a>
-
-                <!-- Link 2: Runtutan Belajar -->
-                <a href="/#/runtutan" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
+                <a href="#/runtutan" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
                     <i class="fa-regular fa-calendar-check mr-4 text-lg w-5 text-center"></i>
                     Runtutan Belajar
                 </a>
-                
-                <!-- Link 3: Langganan -->
-                <a href="/#/langganan" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
+                <a href="#/progress" class="bg-gray-100 text-slate-900 font-bold group flex items-center px-6 py-4 text-sm transition-all relative">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#0f1742]"></div>
+                    <i class="fa-solid fa-chart-pie mr-4 text-lg w-5 text-center"></i>
+                    Progress Belajar
+                <a href="#/langganan" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
                     <i class="fa-regular fa-file-lines mr-4 text-lg w-5 text-center"></i>
                     Langganan
                 </a>
@@ -38,18 +33,19 @@ export default class ProgressPage {
       </aside>
 
       <!-- MAIN CONTENT -->
-      <!-- Margin Left 64 (md:ml-64) PENTING agar konten tidak tertutup sidebar -->
-      <main class="md:ml-64 p-6 lg:p-10">
+      <!-- pt-24: Memberi jarak agar tidak tertutup Navbar -->
+      <!-- md:ml-64: Memberi margin kiri agar tidak tertutup Sidebar -->
+      <main class="md:ml-64 pt-24 px-6 pb-12 transition-all duration-300">
         
-        <div class="max-w-full space-y-8">
+        <div class="max-w-6xl mx-auto space-y-8">
           
           <!-- Page Header -->
           <div class="flex items-center gap-3">
-             <div class="p-2 bg-[#0f172a] rounded text-white">
-                <i class="fa-regular fa-calendar-check text-xl"></i>
+             <div class="p-2 bg-[#0f1742] rounded text-white">
+                <i class="fa-solid fa-chart-pie text-xl"></i>
              </div>
              <div>
-                <h2 class="text-xl font-bold text-slate-800">Progres Belajar</h2>
+                <h2 class="text-2xl font-bold text-[#0f1742]">Progres Belajar</h2>
                 <p id="header-subtitle" class="text-sm text-gray-500">Memuat data...</p>
              </div>
           </div>
@@ -57,7 +53,7 @@ export default class ProgressPage {
           <!-- SECTION 1: Kelas yang Sedang Dipelajari -->
           <section class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <!-- Header Card -->
-            <div class="p-4 bg-[#0f172a] text-white flex items-center gap-3">
+            <div class="px-6 py-4 bg-[#0f1742] text-white flex items-center gap-3">
                <i class="fa-regular fa-calendar text-lg opacity-90"></i>
                <div>
                    <div class="text-sm font-bold">Kelas yang Sedang Dipelajari</div>
@@ -67,14 +63,18 @@ export default class ProgressPage {
             
             <!-- List Container -->
             <div id="in-progress-list" class="flex flex-col min-h-[100px]">
-                <div class="p-6 text-center text-gray-400 text-sm">Memuat data...</div>
+                <!-- Skeleton Loading -->
+                <div class="p-6 space-y-4 animate-pulse">
+                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
             </div>
           </section>
 
           <!-- SECTION 2: Kelas yang Sudah Diselesaikan -->
           <section class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-10">
             <!-- Header Card -->
-            <div class="p-4 bg-[#0f172a] text-white flex items-center gap-3">
+            <div class="px-6 py-4 bg-[#0f1742] text-white flex items-center gap-3">
                <i class="fa-regular fa-calendar-check text-lg opacity-90"></i>
                <div>
                    <div class="text-sm font-bold">Kelas yang Sudah Diselesaikan</div>
@@ -84,7 +84,11 @@ export default class ProgressPage {
             
             <!-- List Container -->
             <div id="completed-list" class="flex flex-col min-h-[100px]">
-                 <div class="p-6 text-center text-gray-400 text-sm">Memuat data...</div>
+                 <!-- Skeleton Loading -->
+                <div class="p-6 space-y-4 animate-pulse">
+                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
             </div>
           </section>
 
@@ -94,13 +98,13 @@ export default class ProgressPage {
     `;
   }
 
-  // --- LOGIKA FETCH DATA ---
-  async load() {
-    // 1. CEK TOKEN DULU: Kalau tidak ada token, jangan panggil API, langsung minta login
+  // UBAH NAMA METHOD: dari load() menjadi afterRender() agar dipanggil Router
+  async afterRender() {
+    // 1. CEK TOKEN DULU
     const token = localStorage.getItem("token");
     if (!token) {
       alert("Anda belum login. Silakan login terlebih dahulu.");
-      window.location.hash = "/login";
+      window.location.hash = "#/login"; // Pastikan pake # jika hash routing
       return;
     }
 
@@ -118,38 +122,54 @@ export default class ProgressPage {
       // Panggil API
       const data = await progressAPI.getOverview();
 
-      // Debugging: Lihat apa yang dikembalikan backend di Console browser (F12)
-      console.log("Data Progress dari Backend:", data);
+      // Debugging
+      console.log("Data Progress:", data);
 
       const allModules = data.modules || [];
       const overallPercentage = data.percentage || 0;
 
       if (headerSubtitle) {
-        headerSubtitle.textContent = `Total Pencapaian: ${overallPercentage}%`;
+        headerSubtitle.textContent = `Total Pencapaian Keseluruhan: ${overallPercentage}%`;
       }
 
-      const activeModules = allModules.filter((m) => m.progress < 100);
-      const completedModules = allModules.filter((m) => m.progress >= 100);
+      // Filter Data
+      const activeModules = allModules.filter(
+        (m) => parseInt(m.progress) < 100
+      );
+      const completedModules = allModules.filter(
+        (m) => parseInt(m.progress) >= 100
+      );
 
-      // Helper HTML Item
+      // Helper HTML Item Generator
       const createItemHTML = (module, isCompleted) => {
         const iconClass = isCompleted
           ? "fa-solid fa-circle-check text-green-500"
-          : "fa-solid fa-circle-exclamation text-red-500";
-        const btnText = isCompleted ? "Lihat Detail" : "Detail Kelas";
+          : "fa-solid fa-circle-exclamation text-yellow-500"; // Kuning untuk on-progress
+
+        const btnText = isCompleted ? "Ulas Kembali" : "Lanjutkan Belajar";
+        const progressColor = isCompleted ? "bg-green-500" : "bg-yellow-500";
 
         return `
-            <div class="flex items-center justify-between p-5 border-b border-gray-100 hover:bg-gray-50 transition last:border-b-0">
-                <div class="flex items-center gap-4">
-                    <i class="${iconClass} text-lg"></i>
+            <div class="flex flex-col md:flex-row md:items-center justify-between p-5 border-b border-gray-100 hover:bg-gray-50 transition last:border-b-0 gap-4">
+                <div class="flex items-start gap-4">
+                    <i class="${iconClass} text-xl mt-1"></i>
                     <div>
-                        <div class="text-slate-700 font-medium text-sm md:text-base">${module.title}</div>
-                        <div class="text-xs text-gray-400 mt-1">
-                           ${module.progress}% Selesai
+                        <div class="text-slate-800 font-bold text-base">${module.title}</div>
+                        
+                        <!-- Progress Bar Kecil -->
+                        <div class="flex items-center gap-3 mt-2">
+                            <div class="w-32 h-2 bg-gray-200 rounded-full">
+                                <div class="h-2 rounded-full ${progressColor}" style="width: ${module.progress}%"></div>
+                            </div>
+                            <div class="text-xs text-gray-500 font-semibold">
+                                ${module.progress}% Selesai
+                            </div>
                         </div>
                     </div>
                 </div>
-                <button class="bg-[#0f172a] text-white text-xs px-4 py-2 rounded shadow-sm hover:bg-slate-800 transition whitespace-nowrap ml-4">
+                <button 
+                    onclick="window.location.hash='#/module/${module.id}'"
+                    class="bg-[#0f1742] text-white text-xs font-medium px-5 py-2.5 rounded shadow-sm hover:bg-blue-900 transition whitespace-nowrap self-start md:self-center">
                     ${btnText}
                 </button>
             </div>
@@ -162,7 +182,11 @@ export default class ProgressPage {
           .map((m) => createItemHTML(m, false))
           .join("");
       } else {
-        activeContainer.innerHTML = `<div class="p-5 text-gray-500 text-sm italic text-center">Tidak ada kelas yang sedang dipelajari.</div>`;
+        activeContainer.innerHTML = `
+            <div class="p-8 text-center flex flex-col items-center justify-center text-gray-400">
+                <i class="fa-solid fa-clipboard-check text-4xl mb-3 opacity-20"></i>
+                <span class="text-sm">Tidak ada kelas yang sedang dipelajari saat ini.</span>
+            </div>`;
       }
 
       // Render Completed
@@ -171,20 +195,15 @@ export default class ProgressPage {
           .map((m) => createItemHTML(m, true))
           .join("");
       } else {
-        completedContainer.innerHTML = `<div class="p-5 text-gray-500 text-sm italic text-center">Belum ada kelas yang diselesaikan.</div>`;
+        completedContainer.innerHTML = `
+            <div class="p-8 text-center flex flex-col items-center justify-center text-gray-400">
+                <i class="fa-solid fa-trophy text-4xl mb-3 opacity-20"></i>
+                <span class="text-sm">Belum ada kelas yang diselesaikan. Ayo semangat!</span>
+            </div>`;
       }
     } catch (error) {
       console.error("Error fetching progress:", error);
-
-      // Pesan error lebih detail
-      let msg = "Gagal memuat data.";
-      if (error.message.includes("401") || error.message.includes("403")) {
-        msg = "Sesi habis. Silakan login ulang.";
-      } else if (error.message.includes("Failed to fetch")) {
-        msg = "Gagal menghubungi server (Backend mati?).";
-      }
-
-      const errorHTML = `<div class="p-5 text-red-500 text-sm text-center font-medium">${msg} <br> Cek console (F12) untuk detail.</div>`;
+      const errorHTML = `<div class="p-5 text-red-500 text-sm text-center">Gagal memuat data. Periksa koneksi internet Anda.</div>`;
       activeContainer.innerHTML = errorHTML;
       completedContainer.innerHTML = errorHTML;
     }

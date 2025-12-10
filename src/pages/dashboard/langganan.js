@@ -13,13 +13,13 @@ export default class LanggananPage {
                     <!-- Link 1: Progres Belajar (NON-AKTIF) -->
                     <a href="#/runtutan" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
                         <i class="fa-solid fa-chart-pie mr-4 text-lg w-5 text-center"></i>
-                        Progres Belajar
+                        Runtutan Belajar
                     </a>
 
                     <!-- Link 2: Runtutan Belajar (NON-AKTIF) -->
                     <a href="#/progress" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
                         <i class="fa-regular fa-calendar-check mr-4 text-lg w-5 text-center"></i>
-                        Runtutan Belajar
+                        Progress Belajar
                     </a>
                     
                     <!-- Link 3: Langganan (AKTIF - Style Diubah Sesuai Gambar) -->

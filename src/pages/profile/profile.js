@@ -1,4 +1,4 @@
-import { usersAPI, modulesAPI } from "../../api/api.js";
+import { usersAPI, modulesAPI, progressAPI } from "../../api/api.js"; // Tambahkan progressAPI
 
 class ProfilePage {
   render() {
@@ -89,6 +89,7 @@ class ProfilePage {
     try {
       // --- STEP 1: Ambil Data User ---
       const usersData = await usersAPI.getAll();
+      // Mengambil user pertama sebagai simulasi user yang sedang login
       const currentUser =
         usersData && usersData.length > 0 ? usersData[0] : null;
 
@@ -113,13 +114,17 @@ class ProfilePage {
         const profileImg = document.getElementById("profile-image");
         if (profileImg) profileImg.src = photoUrl;
 
-        // Update Foto Kecil di Navbar
+        // Update Foto Kecil di Navbar (jika ada)
         const navImg = document.getElementById("nav-profile-img");
         if (navImg) navImg.src = photoUrl;
       }
 
-      // --- STEP 2: Ambil Data Module ---
-      const modules = await modulesAPI.getAll();
+      // --- STEP 2: Ambil Data Module & Progress secara Paralel ---
+      const [modules, overviewData] = await Promise.all([
+        modulesAPI.getAll(),
+        progressAPI.getOverview(),
+      ]);
+
       const gridContainer = document.getElementById("course-grid");
 
       if (!modules || modules.length === 0) {
@@ -130,10 +135,21 @@ class ProfilePage {
         return;
       }
 
+      // Mapping Modules ke HTML
       gridContainer.innerHTML = modules
         .map((module) => {
-          // Mockup status random
-          const isLulus = Math.random() > 0.5;
+          // 1. Cari data progress user untuk modul ini berdasarkan ID
+          const userModuleData = overviewData.modules?.find(
+            (m) => m.id === module.id
+          );
+
+          // 2. Ambil nilai progress (default 0 jika tidak ditemukan)
+          const currentProgress = userModuleData
+            ? parseInt(userModuleData.progress)
+            : 0;
+
+          // 3. Tentukan Status Lulus (Hanya jika 100%)
+          const isLulus = currentProgress === 100;
 
           const statusData = isLulus
             ? {
@@ -145,25 +161,37 @@ class ProfilePage {
             : {
                 text: "Belum Lulus",
                 icon: "fa-circle-exclamation",
-                color: "text-red-500",
+                color: "text-red-500", // Merah untuk belum lulus
                 iconClass: "fa-solid",
               };
 
-          const totalModul =
-            module.totalChapters || Math.floor(Math.random() * 100) + 20;
+          // 4. Ambil Total Chapters (Gunakan data real jika ada, atau fallback ke 0)
+          const totalModul = module.totalChapters || module.chapters_count || 0;
 
           return `
           <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm flex flex-col md:flex-row gap-6 hover:shadow-md transition-shadow group">
             
             <div class="w-full md:w-32 h-32 bg-gray-100 rounded-md shrink-0 flex items-center justify-center text-gray-400 group-hover:bg-gray-200 transition-colors">
+               <!-- Jika ada gambar modul: <img src="${
+                 module.imageUrl
+               }" ...> -->
                <i class="fa-solid fa-image text-3xl"></i>
             </div>
 
             <div class="flex flex-col justify-between flex-1 w-full">
               
-              <div class="flex items-center gap-2 ${statusData.color} text-sm font-bold mb-2">
+              <!-- Status Badge -->
+              <div class="flex items-center gap-2 ${
+                statusData.color
+              } text-sm font-bold mb-2">
                 <i class="${statusData.iconClass} ${statusData.icon}"></i>
                 <span>${statusData.text}</span>
+                <!-- Menampilkan persentase jika belum lulus -->
+                ${
+                  !isLulus
+                    ? `<span class="text-xs text-gray-500 font-normal">(${currentProgress}%)</span>`
+                    : ""
+                }
               </div>
 
               <h3 class="text-lg font-bold text-slate-900 mb-2 leading-snug">
@@ -177,7 +205,11 @@ class ProfilePage {
                   Detail Kelas
                 </button>
                 <span class="text-xs text-slate-500 font-medium">
-                    ${totalModul} Module
+                    ${
+                      totalModul > 0
+                        ? `${totalModul} Chapters`
+                        : "Akses Selamanya"
+                    }
                 </span>
               </div>
 
@@ -192,7 +224,7 @@ class ProfilePage {
       if (grid) {
         grid.innerHTML = `
           <p class="text-red-500 col-span-2 text-center mt-4">
-              Terjadi kesalahan saat memuat data.
+              Terjadi kesalahan saat memuat data. Pastikan Anda sudah Login.
           </p>
         `;
       }
