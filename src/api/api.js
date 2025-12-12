@@ -163,6 +163,19 @@ export const modulesAPI = {
     return handleResponse(response);
   },
 
+  getSubchapterFull: async (subId) => {
+    const modules = await modulesAPI.getAll();
+    for (const m of modules) {
+      const chapters = await modulesAPI.getChapters(m.id);
+      for (const ch of chapters) {
+        const subs = await modulesAPI.getSubchapters(m.id, ch.id);
+        const sub = subs.find(s => s.id === subId);
+        if (sub) return { module: m, chapter: ch, subchapter: sub, allSubchapters: subs, allChapters: chapters };
+      }
+    }
+    throw new Error("Subchapter tidak ditemukan");
+  },
+
   updateSubchapter: async (moduleId, chapterId, subchapterId, data) => {
     const response = await fetch(
       `${API_BASE_URL}/modules/${moduleId}/chapters/${chapterId}/subchapters/${subchapterId}`,
