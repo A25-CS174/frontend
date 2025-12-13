@@ -140,7 +140,9 @@ export default class RuntutanPage {
         this.loadLearningPaths(),
         this.loadNonLearningPathModules(),
       ]);
-      results.forEach((r) => r.status === "rejected" && console.error(r.reason));
+      results.forEach(
+        (r) => r.status === "rejected" && console.error(r.reason)
+      );
     });
 
     // Jalankan semua task secara bersamaan, tapi jangan batalkan semua jika salah satu gagal
@@ -203,7 +205,9 @@ export default class RuntutanPage {
       // Jika ada selectedLP, cari dan tampilkan hanya LP tersebut
       const selectedId = parseInt(selectedLP);
       const found = (paths || []).find(
-        (p) => parseInt(p.learning_path_id) === selectedId || parseInt(p.learning_path_id) === selectedId
+        (p) =>
+          parseInt(p.learning_path_id) === selectedId ||
+          parseInt(p.learning_path_id) === selectedId
       );
       const displayPaths = found ? [found] : [];
 
@@ -245,7 +249,6 @@ export default class RuntutanPage {
 
           // Tentukan style berdasarkan rata-rata
           const style = this.getStatusStyle(pathProgress);
-          
 
           // Generate List Modules (Dropdown Items)
           const modulesListHTML = modulesWithProgress
@@ -279,13 +282,19 @@ export default class RuntutanPage {
                 <div class="flex items-center gap-2 mb-2">
                     <i class="fa-solid ${style.icon} ${style.text} text-lg"></i>
                     <h4 class="font-semibold text-slate-800 text-sm md:text-base">
-                      ${path.learning_path_name} ${selectedLP && parseInt(path.learning_path_id) === selectedLP ? '<span class="text-xs text-green-600 font-semibold">(Sedang Diikuti)</span>' : ''}
+                      ${path.learning_path_name} ${
+            selectedLP && parseInt(path.learning_path_id) === selectedId
+              ? '<span class="text-xs text-green-600 font-semibold">(Sedang Diikuti)</span>'
+              : ""
+          }
                     </h4>
                 </div>
 
                 <!-- Progress Bar Utama -->
                 <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
-                    <div class="h-3 rounded-full ${style.bg} transition-all duration-500" style="width: ${pathProgress}%"></div>
+                    <div class="h-3 rounded-full ${
+                      style.bg
+                    } transition-all duration-500" style="width: ${pathProgress}%"></div>
                 </div>
 
                 <!-- Accordion Trigger -->
@@ -314,7 +323,6 @@ export default class RuntutanPage {
     }
   }
 
-
   // 2. RENDER NON-LEARNING PATH (REAL DATA)
   async loadNonLearningPathModules() {
     const container = document.querySelector("#non-learning-container");
@@ -333,24 +341,45 @@ export default class RuntutanPage {
         return;
       }
 
-      // Buat set modul yang termasuk ke dalam Learning Path manapun
-      const modulesInLP = new Set();
-      (paths || []).forEach((p) => {
-        (p.modules || []).forEach((m) => {
-          if (m && m.id != null) modulesInLP.add(m.id);
+      // Jika user memilih satu Learning Path (disimpan di localStorage),
+      // tampilkan modul dari Learning Path tersebut di bagian kanan.
+      const selectedLP = localStorage.getItem("selectedLearningPath");
+      let displayModules = null;
+
+      if (selectedLP) {
+        const selectedId = parseInt(selectedLP);
+        const found = (paths || []).find(
+          (p) => parseInt(p.learning_path_id) === selectedId
+        );
+        if (found && found.modules && found.modules.length > 0) {
+          displayModules = found.modules;
+        } else {
+          // fallback: if selected LP has no modules, show message
+          container.innerHTML = `<p class="text-gray-400 text-sm text-center">Learning Path yang dipilih belum memiliki modul.</p>`;
+          return;
+        }
+      } else {
+        // Buat set modul yang termasuk ke dalam Learning Path manapun
+        const modulesInLP = new Set();
+        (paths || []).forEach((p) => {
+          (p.modules || []).forEach((m) => {
+            if (m && m.id != null) modulesInLP.add(m.id);
+          });
         });
-      });
 
-      // Filter modul yang tidak termasuk dalam LP manapun
-      const nonLpModules = (modules || []).filter((m) => !modulesInLP.has(m.id));
+        // Filter modul yang tidak termasuk dalam LP manapun
+        const nonLpModules = (modules || []).filter(
+          (m) => !modulesInLP.has(m.id)
+        );
 
-      if (!nonLpModules || nonLpModules.length === 0) {
-        container.innerHTML = `<p class="text-gray-400 text-sm text-center">Tidak ada modul terpisah (non-Learning Path).</p>`;
-        return;
+        if (!nonLpModules || nonLpModules.length === 0) {
+          container.innerHTML = `<p class="text-gray-400 text-sm text-center">Tidak ada modul terpisah (non-Learning Path).</p>`;
+          return;
+        }
+
+        // Tampilkan semua modul non-LP (bisa di-limit jika diperlukan)
+        displayModules = nonLpModules;
       }
-
-      // Tampilkan semua modul non-LP (bisa di-limit jika diperlukan)
-      const displayModules = nonLpModules;
 
       container.innerHTML = displayModules
         .map((m) => {

@@ -20,7 +20,7 @@ export default class LandingPage {
           </button>
         </div>
 
-        <div class="flex-1 text-center hidden md:block">
+        <div class="flex-1 max-w-1/2 text-center hidden md:block">
           <img 
             src="/image/homepage-hero.png" 
             alt="Feature"
@@ -31,13 +31,13 @@ export default class LandingPage {
 
       <!-- Features Section -->
       <section class="py-20 px-5 bg-white">
-        <div class="text-center max-w-[800px] mx-auto mb-16">
+        <div class="text-center max-w-[850px] mx-auto">
           <h1 class="text-4xl font-bold text-[#333] mb-5">Kenapa LearnFlow Berbeda</h1>
           <p class="text-lg text-[#666] leading-relaxed">
-            Saatnya bijak memilih sumber belajar. Tak hanya materi yang terjamin,
+            Pantau progres, pahami materi, tingkatkan kemampuan.
           </p>
           <p class="text-lg text-[#666] leading-relaxed">
-            Dicoding Academy juga memiliki reviewer profesional yang akan mengulas kode Anda.
+            LearnFlow adalah media belajar modern dengan visualisasi progres yang informatif dan rapi.
           </p>
         </div>
 
@@ -46,16 +46,16 @@ export default class LandingPage {
           <div class="flex-1">
             <div class="space-y-4">
               <p class="bg-[#f8f9fa] p-4 px-6 rounded-xl border-l-4 border-[#05165B] font-medium hover:translate-x-2">
-                Kurikulum standar industri global
+                Kurikulum industri berskala global
               </p>
               <p class="bg-[#f8f9fa] p-4 px-6 rounded-xl border-l-4 border-[#05165B] font-medium hover:translate-x-2">
                 Belajar fleksibel sesuai jadwal anda
               </p>
               <p class="bg-[#f8f9fa] p-4 px-6 rounded-xl border-l-4 border-[#05165B] font-medium hover:translate-x-2">
-                Code review dari developer expert
+                Visualisasi progres belajar yang jelas, rapi, dan terstruktur
               </p>
               <p class="bg-[#f8f9fa] p-4 px-6 rounded-xl border-l-4 border-[#05165B] font-medium hover:translate-x-2">
-                Alumni terpercaya di berbagai perusahaan
+                Jejak alumni yang terbukti di dunia profesional
               </p>
             </div>
           </div>
@@ -77,7 +77,7 @@ export default class LandingPage {
     const btn = document.getElementById("btnBelajar");
     if (btn) {
       btn.addEventListener("click", () => {
-        window.location.hash = "#/dashboard";
+        window.location.hash = "#/runtutan";
       });
     }
   }

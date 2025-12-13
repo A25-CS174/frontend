@@ -168,7 +168,9 @@ export function initNavbar() {
 
   // Update Profile Image
   const userStr = localStorage.getItem("user");
-  if (userStr) {
+  const isLogged = !!userStr || !!localStorage.getItem("token");
+
+  if (isLogged) {
     try {
       const user = JSON.parse(userStr);
       const initials = user.name
@@ -187,4 +189,14 @@ export function initNavbar() {
       console.error("Error parsing user navbar", e);
     }
   }
+
+  // Toggle visibility of Login/Register links based on auth
+  const authLinks = document.querySelectorAll(
+    'a[href="#/login"], a[href="#/register"]'
+  );
+  authLinks.forEach((a) => {
+    const li = a.closest("li");
+    if (li) li.style.display = isLogged ? "none" : "";
+    else a.style.display = isLogged ? "none" : "";
+  });
 }

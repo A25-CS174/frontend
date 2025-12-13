@@ -97,10 +97,10 @@ export default class LoginPage {
 
   afterRender() {
     const form = document.getElementById("login-form");
+    const passwordInput = document.getElementById("password");
 
     if (form) {
       const emailInput = form.querySelector("input[type='email']");
-      const passwordInput = document.getElementById("password");
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -110,43 +110,55 @@ export default class LoginPage {
           password: passwordInput.value,
         };
 
-        console.log("📤 Sending Login Request:", payload);
-
         try {
           const res = await fetch(
             "https://api.rakasatriaefendi.site/api/auth/login",
             {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
             }
           );
 
-          console.log("📥 Response Status:", res.status);
-
           const data = await res.json();
-          console.log("📥 Response JSON:", data);
 
           if (res.ok) {
             localStorage.setItem("token", data.token);
-            alert("Login Berhasil!");
-            // contoh redirect
-            window.location.hash = "/dashboard";
+
+            // ALERT SUKSES
+            Swal.fire({
+              icon: "success",
+              title: "Login Berhasil!",
+              text: "Mengalihkan ke dashboard...",
+              timer: 1500,
+              showConfirmButton: false,
+            }).then(() => {
+              window.location.hash = "/dashboard";
+            });
           } else {
-            alert("Login Gagal: " + data.message);
+            // ALERT GAGAL (API Error)
+            Swal.fire({
+              icon: "error",
+              title: "Login Gagal",
+              text: data.message || "Email atau password salah.",
+              confirmButtonColor: "#2d3e50",
+            });
           }
         } catch (error) {
           console.error("❌ Network Error:", error);
-          alert("Tidak bisa terhubung ke server.");
+          // ALERT GAGAL (Network Error)
+          Swal.fire({
+            icon: "error",
+            title: "Kesalahan Jaringan",
+            text: "Tidak bisa terhubung ke server.",
+            confirmButtonColor: "#2d3e50",
+          });
         }
       });
     }
 
-    // PASSWORD TOGGLE
+    // toggle password
     const toggleBtn = document.getElementById("togglePassword");
-    const passwordInput = document.getElementById("password");
     const iconShow = document.getElementById("icon-show");
     const iconHide = document.getElementById("icon-hide");
 
