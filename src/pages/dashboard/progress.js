@@ -1,4 +1,5 @@
 import { progressAPI } from "../../api/api.js";
+import { learningPathsAPI } from "../../api/api.js";
 
 export default class ProgressPage {
   constructor() {
@@ -24,6 +25,10 @@ export default class ProgressPage {
                     <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#0f1742]"></div>
                     <i class="fa-solid fa-chart-pie mr-4 text-lg w-5 text-center"></i>
                     Progress Belajar
+                <a href="#/learning-paths" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
+                  <i class="fa-solid fa-road mr-4 text-lg w-5 text-center"></i>
+                  Learning Paths
+                </a>
                 <a href="#/langganan" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
                     <i class="fa-regular fa-file-lines mr-4 text-lg w-5 text-center"></i>
                     Langganan
@@ -108,6 +113,11 @@ export default class ProgressPage {
       return;
     }
 
+    // register listener agar halaman ini diperbarui ketika user mengubah pilihan Learning Path
+    window.addEventListener("learningpath:changed", async () => {
+      await this.fetchProgressData();
+    });
+
     await this.fetchProgressData();
   }
 
@@ -119,14 +129,50 @@ export default class ProgressPage {
     if (!activeContainer || !completedContainer) return;
 
     try {
-      // Panggil API
-      const data = await progressAPI.getOverview();
+      // Ambil overview dan semua learning paths agar bisa memutuskan modul mana yang termasuk LP
+      const [overview, allLPs] = await Promise.all([
+        progressAPI.getOverview(),
+        learningPathsAPI.getAll(),
+      ]);
+
+      // kumpulkan semua module ids yang termasuk di semua LP
+      const lpModuleIdsAll = new Set();
+      (allLPs || []).forEach((p) => {
+        (p.modules || []).forEach((m) => lpModuleIdsAll.add(m.id));
+      });
+
+      const selectedLP = parseInt(localStorage.getItem("selectedLearningPath")) || null;
+
+      let filteredModules = overview.modules || [];
+
+      if (selectedLP) {
+        // jika ada LP terpilih, tampilkan hanya modul dari LP tersebut
+        try {
+          const lp = await learningPathsAPI.getById(selectedLP);
+          const lpModuleIds = new Set((lp.modules || []).map((m) => m.id));
+          filteredModules = (overview.modules || []).filter((m) => lpModuleIds.has(m.id));
+        } catch (e) {
+          console.warn("Gagal memuat learning path untuk filter:", e);
+        }
+      } else {
+        // jika belum pilih LP, tampilkan hanya modul yang TIDAK termasuk di ANY LP
+        filteredModules = (overview.modules || []).filter((m) => !lpModuleIdsAll.has(m.id));
+      }
+
+      // update data variable used later
+      const data = { ...overview, modules: filteredModules };
 
       // Debugging
       console.log("Data Progress:", data);
 
       const allModules = data.modules || [];
-      const overallPercentage = data.percentage || 0;
+      // hitung overall berdasarkan modul yang sedang ditampilkan (agar konsisten)
+      const overallPercentage = allModules.length
+        ? Math.round(
+            allModules.reduce((acc, m) => acc + (parseInt(m.progress) || 0), 0) /
+              allModules.length
+          )
+        : 0;
 
       if (headerSubtitle) {
         headerSubtitle.textContent = `Total Pencapaian Keseluruhan: ${overallPercentage}%`;

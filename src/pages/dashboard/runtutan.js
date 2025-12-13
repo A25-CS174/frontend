@@ -23,6 +23,10 @@ export default class RuntutanPage {
                 <a href="#/progress" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
                     <i class="fa-regular fa-calendar-check mr-4 text-lg w-5 text-center"></i>
                     Progress Belajar
+                <a href="#/learning-paths" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
+                  <i class="fa-solid fa-road mr-4 text-lg w-5 text-center"></i>
+                  Learning Paths
+                </a>
                 </a>
                 <a href="#/langganan" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
                     <i class="fa-regular fa-file-lines mr-4 text-lg w-5 text-center"></i>
@@ -129,11 +133,23 @@ export default class RuntutanPage {
     }
 
     // Load semua data secara paralel agar efisien
-    await Promise.all([
+    // register listener agar halaman diperbarui ketika pilihan Learning Path berubah
+    window.addEventListener("learningpath:changed", async () => {
+      const results = await Promise.allSettled([
+        this.initChart(),
+        this.loadLearningPaths(),
+        this.loadNonLearningPathModules(),
+      ]);
+      results.forEach((r) => r.status === "rejected" && console.error(r.reason));
+    });
+
+    // Jalankan semua task secara bersamaan, tapi jangan batalkan semua jika salah satu gagal
+    const initial = await Promise.allSettled([
       this.initChart(),
       this.loadLearningPaths(),
       this.loadNonLearningPathModules(),
     ]);
+    initial.forEach((r) => r.status === "rejected" && console.error(r.reason));
   }
 
   // Helper: Menentukan warna berdasarkan value progress
@@ -171,15 +187,35 @@ export default class RuntutanPage {
         progressAPI.getOverview(),
       ]);
 
-      if (!paths || paths.length === 0) {
-        container.innerHTML = `<p class="text-gray-400 text-sm text-center">Belum ada Learning Path yang diikuti.</p>`;
+      // Jika user belum memilih Learning Path manapun -> tampilkan pesan + link
+      const selectedLP = localStorage.getItem("selectedLearningPath");
+      if (!selectedLP) {
+        container.innerHTML = `
+          <div class="py-8 text-center">
+            <p class="text-gray-500 mb-3">Anda belum memilih Learning Path.</p>
+            <a href="#/learning-paths" class="inline-block text-sm text-white bg-[#0f1742] px-4 py-2 rounded">Pilih Learning Path</a>
+            <p class="text-xs text-gray-400 mt-3">Hanya modul yang tidak termasuk Learning Path yang akan tampil di bagian Non-Learning Path.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Jika ada selectedLP, cari dan tampilkan hanya LP tersebut
+      const selectedId = parseInt(selectedLP);
+      const found = (paths || []).find(
+        (p) => parseInt(p.learning_path_id) === selectedId || parseInt(p.learning_path_id) === selectedId
+      );
+      const displayPaths = found ? [found] : [];
+
+      if (!displayPaths || displayPaths.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm text-center">Learning Path yang dipilih tidak ditemukan.</p>`;
         return;
       }
 
       // 2. Render HTML
-      container.innerHTML = paths
+      container.innerHTML = displayPaths
         .map((path, index) => {
-          const uniqueId = `lp-${path.id || index}`;
+          const uniqueId = `lp-${path.learning_path_id || index}`;
           const modules = path.modules || [];
 
           // --- LOGIC HITUNG PROGRESS REAL ---
@@ -209,6 +245,7 @@ export default class RuntutanPage {
 
           // Tentukan style berdasarkan rata-rata
           const style = this.getStatusStyle(pathProgress);
+          
 
           // Generate List Modules (Dropdown Items)
           const modulesListHTML = modulesWithProgress
@@ -242,7 +279,7 @@ export default class RuntutanPage {
                 <div class="flex items-center gap-2 mb-2">
                     <i class="fa-solid ${style.icon} ${style.text} text-lg"></i>
                     <h4 class="font-semibold text-slate-800 text-sm md:text-base">
-                        ${path.learning_path_name}
+                      ${path.learning_path_name} ${selectedLP && parseInt(path.learning_path_id) === selectedLP ? '<span class="text-xs text-green-600 font-semibold">(Sedang Diikuti)</span>' : ''}
                     </h4>
                 </div>
 
@@ -277,25 +314,43 @@ export default class RuntutanPage {
     }
   }
 
+
   // 2. RENDER NON-LEARNING PATH (REAL DATA)
   async loadNonLearningPathModules() {
     const container = document.querySelector("#non-learning-container");
     if (!container) return;
 
     try {
-      const [modules, overviewData] = await Promise.all([
+      // Ambil semua modul, semua Learning Paths, dan overview progress
+      const [modules, paths, overviewData] = await Promise.all([
         modulesAPI.getAll(),
+        learningPathsAPI.getAll(),
         progressAPI.getOverview(),
       ]);
 
       if (!modules || modules.length === 0) {
-        container.innerHTML = `<p class="text-gray-400 text-sm text-center">Belum ada modul yang diikuti.</p>`;
+        container.innerHTML = `<p class="text-gray-400 text-sm text-center">Belum ada modul tersedia.</p>`;
         return;
       }
 
-      // Opsional: Filter jika ingin memisahkan mana yang masuk LP dan mana yang tidak
-      // Untuk sekarang kita tampilkan 5 modul pertama sebagai contoh
-      const displayModules = modules.slice(0, 5);
+      // Buat set modul yang termasuk ke dalam Learning Path manapun
+      const modulesInLP = new Set();
+      (paths || []).forEach((p) => {
+        (p.modules || []).forEach((m) => {
+          if (m && m.id != null) modulesInLP.add(m.id);
+        });
+      });
+
+      // Filter modul yang tidak termasuk dalam LP manapun
+      const nonLpModules = (modules || []).filter((m) => !modulesInLP.has(m.id));
+
+      if (!nonLpModules || nonLpModules.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm text-center">Tidak ada modul terpisah (non-Learning Path).</p>`;
+        return;
+      }
+
+      // Tampilkan semua modul non-LP (bisa di-limit jika diperlukan)
+      const displayModules = nonLpModules;
 
       container.innerHTML = displayModules
         .map((m) => {

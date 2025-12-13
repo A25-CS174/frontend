@@ -1,5 +1,7 @@
+import { learningPathsAPI } from "../../api/api.js";
+
 export default class LanggananPage {
-  render() {
+    render() {
     return `
         <!-- CONTAINER UTAMA -->
         <!-- pt-16 ditambahkan agar konten tidak tertutup oleh Navbar fixed Anda -->
@@ -21,7 +23,11 @@ export default class LanggananPage {
                         <i class="fa-regular fa-calendar-check mr-4 text-lg w-5 text-center"></i>
                         Progress Belajar
                     </a>
-                    
+                    <a href="#/learning-paths" class="text-gray-600 hover:bg-gray-50 hover:text-slate-900 group flex items-center px-6 py-4 text-sm font-medium transition-all">
+                        <i class="fa-solid fa-road mr-4 text-lg w-5 text-center"></i>
+                        Learning Paths
+                    </a>
+
                     <!-- Link 3: Langganan (AKTIF - Style Diubah Sesuai Gambar) -->
                     <a href="#/langganan" class="bg-gray-100 text-slate-900 font-bold group flex items-center px-6 py-4 text-sm transition-all relative">
                         <!-- Garis Indikator Aktif di Kiri -->
@@ -44,6 +50,9 @@ export default class LanggananPage {
                 </div>
                 <h1 class="text-xl font-bold text-slate-900">Langganan</h1>
             </div>
+
+            <!-- Selected Learning Path (will be populated by JS) -->
+            <div id="selected-lp-box" class="mb-6"></div>
 
             <!-- Grey Placeholder Box (Banner) -->
             <div class="w-full h-48 bg-gray-200 rounded-md mb-8 border-2 border-solid border-gray-300 overflow-hidden">
@@ -147,4 +156,48 @@ export default class LanggananPage {
         </div>
     `;
   }
+
+    async afterRender() {
+        const box = document.getElementById("selected-lp-box");
+        if (!box) return;
+        const selectedLP = parseInt(localStorage.getItem("selectedLearningPath")) || null;
+        if (!selectedLP) {
+            box.innerHTML = `<div class="text-sm text-gray-500">Anda belum memilih Learning Path untuk diikuti.</div>`;
+            return;
+        }
+
+        try {
+            const lp = await learningPathsAPI.getById(selectedLP);
+            if (!lp) {
+                box.innerHTML = `<div class="text-sm text-red-500">Gagal memuat learning path.</div>`;
+                return;
+            }
+
+            box.innerHTML = `
+                <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between">
+                    <div>
+                        <div class="text-sm text-gray-500">Learning Path yang diikuti</div>
+                        <div class="font-semibold text-slate-900">${lp.learning_path_name}</div>
+                        <div class="text-xs text-gray-400">${(lp.modules||[]).length} modul</div>
+                    </div>
+                    <div>
+                        <button id="btn-unfollow-lp" class="text-xs text-red-500">Berhenti Ikuti</button>
+                    </div>
+                </div>
+            `;
+
+            const btn = document.getElementById("btn-unfollow-lp");
+            if (btn) {
+                btn.addEventListener("click", () => {
+                    localStorage.removeItem("selectedLearningPath");
+                    alert("Berhenti mengikuti Learning Path.");
+                    window.dispatchEvent(new Event("learningpath:changed"));
+                    this.afterRender();
+                });
+            }
+        } catch (e) {
+            console.error(e);
+            box.innerHTML = `<div class="text-sm text-red-500">Gagal memuat data.</div>`;
+        }
+    }
 }

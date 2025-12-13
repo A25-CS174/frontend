@@ -7,6 +7,7 @@ import LanggananPage from "../src/pages/dashboard/langganan.js";
 import ProfilePage from "../src/pages/profile/profile.js";
 import ModulePage from "../src/pages/module/module.js";
 import SubchapterPage from "../src/pages/module/subchapter.js";
+import LearningPathsPage from "../src/pages/learning-paths/learningpaths.js";
 
 const routes = {
   "/": LandingPage,
@@ -15,6 +16,7 @@ const routes = {
   runtutan: RuntutanPage,
   progress: ProgressPage,
   langganan: LanggananPage,
+  "learning-paths": LearningPathsPage,
   profile: ProfilePage,
   "module/:id": ModulePage,
   "subchapter/:id": SubchapterPage,

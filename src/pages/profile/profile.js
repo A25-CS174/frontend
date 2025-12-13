@@ -188,6 +188,30 @@ class ProfilePage {
         progressAPI.getOverview(),
       ]);
 
+      // Jika user memilih Learning Path, tampilkan hanya modul yang termasuk pada LP tersebut
+      // Jika belum memilih, tampilkan hanya modul yang TIDAK termasuk di learning path manapun
+      const selectedLP = parseInt(localStorage.getItem("selectedLearningPath"));
+      let displayModules = modules;
+      if (selectedLP) {
+        try {
+          const lp = await (await import("../../api/api.js")).learningPathsAPI.getById(selectedLP);
+          const lpModuleIds = (lp.modules || []).map((m) => m.id);
+          displayModules = modules.filter((mod) => lpModuleIds.includes(mod.id));
+        } catch (e) {
+          console.warn("Gagal memuat learning path untuk profile:", e);
+        }
+      } else {
+        try {
+          const allLPs = await (await import("../../api/api.js")).learningPathsAPI.getAll();
+          const lpModuleIdsAll = new Set();
+          (allLPs || []).forEach((p) => (p.modules || []).forEach((m) => lpModuleIdsAll.add(m.id)));
+          displayModules = modules.filter((mod) => !lpModuleIdsAll.has(mod.id));
+        } catch (e) {
+          console.warn("Gagal memuat learning paths untuk filter non-LP di profile:", e);
+          displayModules = modules; // fallback
+        }
+      }
+
       const gridContainer = document.getElementById("course-grid");
 
       if (!modules || modules.length === 0) {
@@ -195,7 +219,7 @@ class ProfilePage {
         return;
       }
 
-      gridContainer.innerHTML = modules
+      gridContainer.innerHTML = displayModules
         .map((module) => {
           // Cari progress user untuk modul ini
           const userModuleData = overviewData.modules?.find(
@@ -253,6 +277,11 @@ class ProfilePage {
         `;
         })
         .join("");
+
+      // listen untuk perubahan pilihan Learning Path
+      window.addEventListener("learningpath:changed", async () => {
+        await this.afterRender();
+      });
     } catch (error) {
       console.error("Profile Error:", error);
       const grid = document.getElementById("course-grid");
