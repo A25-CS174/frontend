@@ -1,5 +1,5 @@
 import { parseRoute } from "./router/route.js";
-import { navbar } from "./src/components/navbar.js";
+import { navbar, initNavbar } from "./src/components/navbar.js";
 
 class App {
   constructor({ content }) {
@@ -22,19 +22,24 @@ class App {
       this._content.innerHTML = page.render();
     }
 
-    // Jalankan script setelah render
     if (page.load) {
       await page.load();
     } else if (page.afterRender) {
       await page.afterRender();
     }
+
+    initNavbar();
   }
 }
 
 // Pasang navbar
 const contentEl = document.getElementById("content");
 const navbarEl = document.getElementById("navbar");
-if (navbarEl) navbarEl.innerHTML = navbar;
+
+if (navbarEl) {
+  navbarEl.innerHTML = navbar;
+  initNavbar();
+}
 
 // Inisialisasi app
 if (contentEl) new App({ content: contentEl });
